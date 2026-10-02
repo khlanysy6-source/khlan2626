@@ -1,0 +1,130 @@
+{
+  "entities": {
+    "Task": {
+      "title": "Task",
+      "description": "A specific task within a pathway of an initiative",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier of the task" },
+        "title": { "type": "string", "description": "Title of the task" },
+        "description": { "type": "string", "description": "Detailed description of the task" },
+        "completed": { "type": "boolean", "description": "Whether the task is completed" },
+        "completedAt": { "type": "string", "format": "date-time", "description": "When the task was completed" },
+        "notes": { "type": "string", "description": "Optional notes or field updates" }
+      },
+      "required": ["id", "title", "completed"]
+    },
+    "Pathway": {
+      "title": "Pathway",
+      "description": "One of the five core developmental pathways for an initiative",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer", "description": "Sequential identifier of the pathway" },
+        "title": { "type": "string", "description": "Title of the pathway" },
+        "subtitle": { "type": "string", "description": "Subtitle of the pathway" },
+        "icon": { "type": "string", "description": "Icon name from Lucide icon library" },
+        "tasks": { "type": "array", "description": "List of tasks assigned to this pathway" }
+      },
+      "required": ["id", "title", "tasks"]
+    },
+    "Contribution": {
+      "title": "Contribution",
+      "description": "A financial or in-kind contribution made to the initiative",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique contribution ID" },
+        "donorName": { "type": "string", "description": "Name of the donor" },
+        "type": { "type": "string", "enum": ["cash", "inkind_material", "inkind_labor"], "description": "Type of contribution" },
+        "description": { "type": "string", "description": "Details about the contribution" },
+        "value": { "type": "number", "description": "Estimated cash value in Yemeni Rial" },
+        "date": { "type": "string", "format": "date", "description": "Date of contribution" }
+      },
+      "required": ["id", "donorName", "type", "value", "date"]
+    },
+    "Material": {
+      "title": "Material",
+      "description": "An engineering or infrastructure material stored for the initiative",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique material ID" },
+        "name": { "type": "string", "description": "Name of material, e.g., cement" },
+        "quantity": { "type": "number", "description": "Quantity of the material" },
+        "unit": { "type": "string", "description": "Unit of measurement, e.g., bags" },
+        "status": { "type": "string", "enum": ["safe", "at_risk", "moved"], "description": "Physical safety state" },
+        "storageLocation": { "type": "string", "description": "Where the material is stored" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last updated timestamp" },
+        "notes": { "type": "string", "description": "Optional notes on storage or transport" }
+      },
+      "required": ["id", "name", "quantity", "unit", "status", "storageLocation", "updatedAt"]
+    },
+    "CommitteeMember": {
+      "title": "CommitteeMember",
+      "description": "A member of the community committee overseeing the initiative",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique member identifier" },
+        "name": { "type": "string", "description": "Member's full name" },
+        "role": { "type": "string", "enum": ["leader", "knight", "auditor", "member"], "description": "Role in the committee" },
+        "phone": { "type": "string", "description": "Contact phone number" },
+        "tasksAssigned": { "type": "integer", "description": "Number of field tasks assigned" }
+      },
+      "required": ["id", "name", "role", "phone"]
+    },
+    "FieldReport": {
+      "title": "FieldReport",
+      "description": "A progress report submitted by knights or auditors from the field",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique report identifier" },
+        "title": { "type": "string", "description": "Title of the progress report" },
+        "date": { "type": "string", "format": "date", "description": "Date of the report" },
+        "description": { "type": "string", "description": "Summary of updates" },
+        "isMatchedWithDeskReview": { "type": "boolean", "description": "Whether matched with office verification" },
+        "status": { "type": "string", "enum": ["draft", "submitted", "approved"], "description": "Submission/approval state" },
+        "achievements": { "type": "array", "description": "List of achievements completed" },
+        "challenges": { "type": "array", "description": "List of challenges encountered" },
+        "imagePlaceholder": { "type": "string", "description": "Theme name for illustration matching" }
+      },
+      "required": ["id", "title", "date", "description", "isMatchedWithDeskReview", "status"]
+    },
+    "Initiative": {
+      "title": "Initiative",
+      "description": "A community road paving or rehabilitation initiative in Ibb governorate",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier mapping to document ID" },
+        "initiativeNumber": { "type": "string", "description": "Assigned road initiative serial number" },
+        "name": { "type": "string", "description": "Name of the road or barrier initiative" },
+        "sector": { "type": "string", "description": "Developmental sector, e.g., الطرق" },
+        "subDistrict": { "type": "string", "description": "Sub-district (العزلة)" },
+        "village": { "type": "string", "description": "Village (القرية)" },
+        "coordinates": { "type": "string", "description": "GPS coordinates formatted as latitude, longitude" },
+        "startDate": { "type": "string", "format": "date", "description": "Project start date" },
+        "endDate": { "type": "string", "format": "date", "description": "Project end date" },
+        "cost": { "type": "number", "description": "Total estimated cost" },
+        "communityContribution": { "type": "number", "description": "Valued community contributions" },
+        "unitContribution": { "type": "number", "description": "Central Intervention Unit intervention value" },
+        "completionRate": { "type": "number", "description": "Overall completion rate as percentage" },
+        "district": { "type": "string", "description": "District (المديرية)" },
+        "governorate": { "type": "string", "description": "Governorate (المحافظة)" },
+        "status": { "type": "string", "enum": ["pending", "ongoing", "stagnant", "completed", "stopped"], "description": "Current status" },
+        "stagnationReason": { "type": "string", "description": "Reason for stagnation if status is stagnant or stopped" },
+        "ownerConfirmed": { "type": "boolean", "description": "Whether community ownership has been legally/officially confirmed" },
+        "pathways": { "type": "array", "description": "The five core pathways" },
+        "contributions": { "type": "array", "description": "Financial and material contributions" },
+        "materials": { "type": "array", "description": "Storage inventories of engineering materials" },
+        "committee": { "type": "array", "description": "The leadership committee" },
+        "reports": { "type": "array", "description": "Knights and auditors reports" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Update timestamp" }
+      },
+      "required": ["id", "initiativeNumber", "name", "sector", "subDistrict", "village", "coordinates", "startDate", "endDate", "cost", "communityContribution", "unitContribution", "completionRate", "district", "governorate", "status", "ownerConfirmed", "pathways", "contributions", "materials", "committee", "reports", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/cooperative_initiatives/{initiativeId}": {
+      "schema": "Initiative",
+      "description": "Detailed community road paving and rehabilitation initiatives overseen by Ibb supervisory and central intervention teams"
+    }
+  }
+}

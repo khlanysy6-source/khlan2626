@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- GLOBAL SAFETY NET (DEFAULT DENY) ---
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- GLOBAL HELPERS ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function getUserRole() {
+      return isSignedIn() && 'role' in request.auth.token
+        ? request.auth.token.role
+        : (exists(/databases/$(database)/documents/users/$(request.auth.uid))
+            ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+            : 'VISITOR');
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        getUserRole() == 'SUPER_ADMIN' ||
+        getUserRole() == 'admin' ||
+        request.auth.token.email == 'eesaalqadri25@gmail.com' ||
+        request.auth.token.email == 'kyanalqadry884@gmail.com'
+      );
+    }
+
+    function isCentralLeadership() {
+      return isSignedIn() && (
+        getUserRole() == 'UNIT_HEAD' ||
+        getUserRole() == 'EXECUTIVE_MANAGER' ||
+        getUserRole() == 'UNIT_MANAGER' ||
+        getUserRole() == 'central_unit' ||
+        isSuperAdmin()
+      );
+    }
+
+    function isSupervisionRole() {
+      return isSignedIn() && (
+        getUserRole() == 'SUPERVISION_MANAGER' ||
+        getUserRole() == 'PROVINCIAL_SUPERVISION_MANAGER' ||
+        getUserRole() == 'SUPERVISION_ENGINEER' ||
+        isCentralLeadership()
+      );
+    }
+
+    function isStudiesRole() {
+      return isSignedIn() && (
+        getUserRole() == 'STUDIES_MANAGER' ||
+        getUserRole() == 'PROVINCIAL_STUDIES_MANAGER' ||
+        getUserRole() == 'STUDIES_ENGINEER' ||
+        isCentralLeadership()
+      );
+    }
+
+    function isGovernorRole() {
+      return isSignedIn() && (
+        getUserRole() == 'GOVERNOR' ||
+        getUserRole() == 'GOVERNOR_VIEWER' ||
+        getUserRole() == 'governorate' ||
+        isCentralLeadership()
+      );
+    }
+
+    function isDistrictManagerRole() {
+      return isSignedIn() && (
+        getUserRole() == 'DISTRICT_MANAGER' ||
+        getUserRole() == 'district_director' ||
+        isCentralLeadership()
+      );
+    }
+
+    function isCooperativeAdminRole() {
+      return isSignedIn() && (
+        getUserRole() == 'COOPERATIVE_ADMIN' ||
+        getUserRole() == 'cooperative_association' ||
+        isCentralLeadership()
+      );
+    }
+
+    function isFieldEngineerRole() {
+      return isSignedIn() && (
+        getUserRole() == 'FIELD_ENGINEER' ||
+        getUserRole() == 'SUPERVISION_ENGINEER' ||
+        getUserRole() == 'engineer_inspector' ||
+        isCentralLeadership()
+      );
+    }
+
+    // --- USERS COLLECTION RULES ---
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isCentralLeadership());
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (
+        isSuperAdmin() ||
+        (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    // --- INITIATIVES COLLECTION RULES ---
+    match /cooperative_initiatives/{initiativeId} {
+      // Public read access for transparency portal
+      allow read: if true;
+
+      // Create allowed for authorized institutional roles
+      allow create: if isCentralLeadership() || isDistrictManagerRole() || isCooperativeAdminRole() || isSupervisionRole();
+
+      // Update allowed for authorized roles including engineers and supervision
+      allow update: if isCentralLeadership() || isDistrictManagerRole() || isCooperativeAdminRole() || isFieldEngineerRole() || isSupervisionRole() || isStudiesRole();
+
+      // Delete allowed strictly for Super Admins
+      allow delete: if isSuperAdmin();
+    }
+
+    // --- SETTINGS COLLECTION RULES ---
+    match /cooperative_settings/{settingId} {
+      allow read: if true;
+      allow create, update, delete: if isCentralLeadership();
+    }
+  }
+}
